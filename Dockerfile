@@ -8,4 +8,4 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_DEFAULT_TIMEOUT=100
 RUN pip install -r requirements.txt
 ENV REMOTE_FOLDER_NAME='defaultfoldername'
-ENTRYPOINT ["python3", "main.py", "folder_sync", "$REMOTE_FOLDER_NAME"]
+ENTRYPOINT python3 main.py folder_sync $REMOTE_FOLDER_NAME
