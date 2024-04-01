@@ -9,4 +9,4 @@ services:
     volumes:
       - /local/path/folder:/app/folder_sync:ro
 
-    restart: no
+    restart: unless-stopped
