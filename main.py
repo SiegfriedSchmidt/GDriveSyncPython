@@ -9,8 +9,6 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-from pprint import pprint
 from pathlib import Path
 from typing import Tuple
 
