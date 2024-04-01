@@ -1,0 +1,9 @@
+test
+.idea
+folder_sync
+.DS_STORE
+venv
+.dockerignore
+.gitignore
+Dockerfile
+README.md

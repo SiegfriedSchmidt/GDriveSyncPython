@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  app:
+    image: gdrivesync
+    container_name: gdrivesync
+    environment:
+      REMOTE_FOLDER_NAME: defaultfoldername
+    volumes:
+      - /local/path/folder:/app/folder_sync:ro
+
+    restart: no

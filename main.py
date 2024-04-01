@@ -12,6 +12,7 @@ from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 from pprint import pprint
 from pathlib import Path
+from typing import Tuple
 
 
 class CustomFormatter(logging.Formatter):
@@ -133,7 +134,11 @@ class LocalFolderScanner:
             self.logger.info("Aborted.")
 
 
-def on_find(folder_id: str, logger: logging.Logger, gapi: GoogleApi, sync_folder: Path):
+class MyError(BaseException):
+    pass
+
+
+def on_find(sync_folder: Path, folder_id: str, gapi: GoogleApi, logger: logging.Logger):
     def wrapped(new_files: set[str]):
         logger.info(f'Find new files: {new_files}')
         folder_content = set(map(lambda a: a.get('name'), gapi.show_folder_content(folder_id)))
@@ -151,46 +156,44 @@ def on_find(folder_id: str, logger: logging.Logger, gapi: GoogleApi, sync_folder
     return wrapped
 
 
-def parse_argv(logger: logging.Logger) -> str:
-    default_path = 'folder_sync'
-
+def parse_argv() -> Tuple[str, str]:
     argv = sys.argv
-    if len(argv) > 1:
-        if os.path.isdir(argv[1]):
-            logger.info(f'Set folder path as "{argv[1]}"')
-            return argv[1]
-        else:
-            logger.error(f'"{argv[1]}" is not a folder!')
-            return ''
-    else:
-        if os.path.isdir(default_path):
-            logger.warning(f'Path not provided, setting default "{default_path}"')
-            return default_path
-        else:
-            logger.error(f'Path not provided!')
-            return ''
+    if len(argv) != 3:
+        raise MyError(f'Two arguments must be provided! (local_folder_path remote_folder_name)')
+
+    if not os.path.isdir(argv[1]):
+        raise MyError(f'"{argv[1]}" is not a folder!')
+
+    return argv[1], argv[2]
+
+
+def get_folder_id(gapi: GoogleApi, remote_folder_name):
+    folders = gapi.find_file_id_by_name(remote_folder_name)
+    if len(folders) == 0:
+        raise MyError(f'Remote folder "{remote_folder_name}" not found!')
+
+    if len(folders) > 1:
+        raise MyError(f'Several files were found with the same name "{remote_folder_name}"!')
+
+    return folders[0]
 
 
 def main():
     logger = createLogger()
-    sync_folder = parse_argv(logger)
-
-    if not sync_folder:
-        return
-
-    sync_folder = Path(sync_folder)
     gapi = GoogleApi()
-    scanner = LocalFolderScanner(
-        sync_folder,
-        logger,
-        on_find('1EwIv_6mCWxr5BOr_oUi452_cVorMzUEk', logger, gapi, sync_folder)
-    )
-    scanner.scanning()
 
-    # print(gapi.find_file_id_by_name('from_server'))
-    # print(gapi.show_folder_content('1EwIv_6mCWxr5BOr_oUi452_cVorMzUEk'))
-    # for file_id, file_name in gapi.upload_files([('hello.txt', 'hello1.txt', '1EwIv_6mCWxr5BOr_oUi452_cVorMzUEk')]):
-    #     print(file_name)
+    try:
+        local_folder_path, remote_folder_name = parse_argv()
+        remote_folder_id = get_folder_id(gapi, remote_folder_name)
+    except MyError as error:
+        logger.error(error)
+        exit()
+
+    local_folder_path = Path(local_folder_path)
+    logger.info(f'Set local folder as "{local_folder_path}" and remote folder as "{remote_folder_name}"')
+
+    scanner = LocalFolderScanner(local_folder_path, logger, on_find(local_folder_path, remote_folder_id, gapi, logger))
+    scanner.scanning()
 
 
 if __name__ == '__main__':
