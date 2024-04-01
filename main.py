@@ -64,7 +64,7 @@ class GoogleApi:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                assert os.path.exists(credentials_path), "Credentials.json not found!"
+                assert os.path.exists(credentials_path), "auth/credentials.json not found!"
                 flow = InstalledAppFlow.from_client_secrets_file(credentials_path, GoogleApi.SCOPES)
                 creds = flow.run_local_server(port=0)
 
