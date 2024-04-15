@@ -5,7 +5,8 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
-    PIP_DEFAULT_TIMEOUT=100
+    PIP_DEFAULT_TIMEOUT=100 \
+    BROWSER=/bin/echo \
+    REMOTE_FOLDER_NAME='defaultfoldername'
 RUN pip install -r requirements.txt
-ENV REMOTE_FOLDER_NAME='defaultfoldername'
 ENTRYPOINT python3 main.py folder_sync $REMOTE_FOLDER_NAME

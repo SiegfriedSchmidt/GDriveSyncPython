@@ -5,8 +5,8 @@ services:
     image: gdrivesync
     container_name: gdrivesync
     environment:
-      REMOTE_FOLDER_NAME: defaultfoldername
+      REMOTE_FOLDER_NAME: from_server
     volumes:
-      - /local/path/folder:/app/folder_sync:ro
+      - /mnt/d/Users/Matvei/Developer/Projects/GDriveSyncPython/folder_sync:/app/folder_sync:ro
 
     restart: "no"

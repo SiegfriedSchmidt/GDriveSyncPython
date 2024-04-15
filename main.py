@@ -1,9 +1,8 @@
 import os
 import sys
 import time
-import logging
-import colorama
 
+from google.auth.exceptions import RefreshError
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -11,39 +10,7 @@ from googleapiclient.http import MediaFileUpload
 from googleapiclient.discovery import build
 from pathlib import Path
 from typing import Tuple
-
-
-class CustomFormatter(logging.Formatter):
-    format = "%(asctime)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
-
-    FORMATS = {
-        logging.DEBUG: colorama.Fore.LIGHTWHITE_EX + format + colorama.Fore.RESET,
-        logging.INFO: colorama.Fore.LIGHTWHITE_EX + format + colorama.Fore.RESET,
-        logging.WARNING: colorama.Fore.YELLOW + format + colorama.Fore.RESET,
-        logging.ERROR: colorama.Fore.RED + format + colorama.Fore.RESET,
-        logging.CRITICAL: colorama.Fore.LIGHTRED_EX + format + colorama.Fore.RESET
-    }
-
-    def format(self, record):
-        log_fmt = self.FORMATS.get(record.levelno)
-        formatter = logging.Formatter(log_fmt, "%Y-%m-%d %H:%M:%S")
-        return formatter.format(record)
-
-
-def createLogger():
-    colorama.init()
-
-    logger = logging.getLogger("My_app")
-    logger.setLevel(logging.DEBUG)
-
-    # create console handler with a higher log level
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-
-    ch.setFormatter(CustomFormatter())
-
-    logger.addHandler(ch)
-    return logger
+from libs.logger import logger
 
 
 class GoogleApi:
@@ -60,7 +27,13 @@ class GoogleApi:
 
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
+                try:
+                    creds.refresh(Request())
+                except RefreshError:
+                    logger.info("Refresh token failed, removing old token and trying again...")
+                    os.remove(token_path)
+                    GoogleApi.get_cred(credentials_path, token_path)
+                    exit()
             else:
                 assert os.path.exists(credentials_path), "auth/credentials.json not found!"
                 flow = InstalledAppFlow.from_client_secrets_file(credentials_path, GoogleApi.SCOPES)
@@ -113,10 +86,9 @@ class GoogleApi:
 
 
 class LocalFolderScanner:
-    def __init__(self, folder_path, logger, on_find_new_files: callable):
+    def __init__(self, folder_path, on_find_new_files: callable):
         self.folder_path = folder_path
         self.on_find_new_files = on_find_new_files
-        self.logger: logging.Logger = logger
 
     def scanning(self, interval=3):
         files = set()
@@ -129,14 +101,14 @@ class LocalFolderScanner:
                     files = cur_files
                 time.sleep(interval)
         except KeyboardInterrupt:
-            self.logger.info("Aborted.")
+            logger.info("Aborted.")
 
 
 class MyError(BaseException):
     pass
 
 
-def on_find(sync_folder: Path, folder_id: str, gapi: GoogleApi, logger: logging.Logger):
+def on_find(sync_folder: Path, folder_id: str, gapi: GoogleApi):
     def wrapped(new_files: set[str]):
         logger.info(f'Find new files: {new_files}')
         folder_content = set(map(lambda a: a.get('name'), gapi.show_folder_content(folder_id)))
@@ -177,7 +149,6 @@ def get_folder_id(gapi: GoogleApi, remote_folder_name):
 
 
 def main():
-    logger = createLogger()
     gapi = GoogleApi()
 
     try:
@@ -190,7 +161,7 @@ def main():
     local_folder_path = Path(local_folder_path)
     logger.info(f'Set local folder as "{local_folder_path}" and remote folder as "{remote_folder_name}"')
 
-    scanner = LocalFolderScanner(local_folder_path, logger, on_find(local_folder_path, remote_folder_id, gapi, logger))
+    scanner = LocalFolderScanner(local_folder_path, on_find(local_folder_path, remote_folder_id, gapi))
     scanner.scanning()
 
 
