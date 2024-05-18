@@ -2,10 +2,7 @@ import os
 import sys
 import time
 
-from google.auth.exceptions import RefreshError
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
+from google.oauth2 import service_account
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.discovery import build
 from pathlib import Path
@@ -17,31 +14,12 @@ class GoogleApi:
     SCOPES = ['https://www.googleapis.com/auth/drive']
 
     def __init__(self):
-        self.creds = self.get_cred('auth/credentials.json', 'auth/token.json')
+        self.creds = self.get_cred('auth/key.json')
 
     @staticmethod
-    def get_cred(credentials_path, token_path):
-        creds = None
-        if os.path.exists(token_path):
-            creds = Credentials.from_authorized_user_file(token_path, GoogleApi.SCOPES)
-
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                try:
-                    creds.refresh(Request())
-                except RefreshError:
-                    logger.info("Refresh token failed, removing old token and trying again...")
-                    os.remove(token_path)
-                    GoogleApi.get_cred(credentials_path, token_path)
-                    exit()
-            else:
-                assert os.path.exists(credentials_path), "auth/credentials.json not found!"
-                flow = InstalledAppFlow.from_client_secrets_file(credentials_path, GoogleApi.SCOPES)
-                creds = flow.run_local_server(port=0)
-
-            with open(token_path, 'w') as token:
-                token.write(creds.to_json())
-        return creds
+    def get_cred(service_account_json_key):
+        return service_account.Credentials.from_service_account_file(filename=service_account_json_key,
+                                                                     scopes=GoogleApi.SCOPES)
 
     def find_files_by_query(self, query: str):
         # https://developers.google.com/drive/api/guides/ref-search-terms
