@@ -5,13 +5,13 @@ Before start, we need to get key.json for a service account in google api:
 
 ### Docker compose
 #### Environment
-LOCAL_FOLDER_PATH  --- path to folder to sync
-AUTH_KEY_PATH      --- path to key.json
-REMOTE_FOLDER_NAME --- google drive folder name
+- LOCAL_FOLDER_PATH  --- path to folder to sync
+- AUTH_KEY_PATH      --- path to key.json
+- REMOTE_FOLDER_NAME --- google drive folder name
 
 #### Volumes
-./folder_sync:/app/folder_sync:ro --- path to folder to sync
-./auth:/app/auth:ro               --- path to auth folder with key.json file
+- ./folder_sync:/app/folder_sync:ro --- path to folder to sync
+- ./auth:/app/auth:ro               --- path to auth folder with key.json file
 
 ```yaml
 services:
