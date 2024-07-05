@@ -12,4 +12,4 @@ services:
       - ./folder_sync:/app/folder_sync:ro
       - ./auth:/app/auth:ro
 
-    restart: "no"
+    restart: "unless-stopped"
