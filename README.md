@@ -34,3 +34,21 @@ services:
 ```bash
 $ docker compose up -d
 ```
+
+# Also metube integration
+```yaml
+services:
+  metube:
+    image: ghcr.io/alexta69/metube
+    container_name: metube
+    ports:
+      - "4534:8081"
+    environment:
+      STATE_DIR: /temp/metube
+      TEMP_DIR: /temp
+    volumes:
+      - ./Music/MetubeMusic:/downloads
+      - ./temp:/temp
+    
+    restart: unless-stopped
+```
