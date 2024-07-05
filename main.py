@@ -1,20 +1,20 @@
 import os
-import sys
 import time
 
 from google.oauth2 import service_account
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.discovery import build
 from pathlib import Path
-from typing import Tuple
+
+from init import remote_folder_name, local_folder_path, auth_key_path
 from libs.logger import logger
 
 
 class GoogleApi:
     SCOPES = ['https://www.googleapis.com/auth/drive']
 
-    def __init__(self):
-        self.creds = self.get_cred('auth/key.json')
+    def __init__(self, key_path):
+        self.creds = self.get_cred(key_path)
 
     @staticmethod
     def get_cred(service_account_json_key):
@@ -104,42 +104,29 @@ def on_find(sync_folder: Path, folder_id: str, gapi: GoogleApi):
     return wrapped
 
 
-def parse_argv() -> Tuple[str, str]:
-    argv = sys.argv
-    if len(argv) != 3:
-        raise MyError(f'Two arguments must be provided! (local_folder_path remote_folder_name)')
-
-    if not os.path.isdir(argv[1]):
-        raise MyError(f'"{argv[1]}" is not a folder!')
-
-    return argv[1], argv[2]
-
-
-def get_folder_id(gapi: GoogleApi, remote_folder_name):
-    folders = gapi.find_file_id_by_name(remote_folder_name)
+def get_folder_id(gapi: GoogleApi, folder_name):
+    folders = gapi.find_file_id_by_name(folder_name)
     if len(folders) == 0:
-        raise MyError(f'Remote folder "{remote_folder_name}" not found!')
+        raise MyError(f'Remote folder "{folder_name}" not found!')
 
     if len(folders) > 1:
-        raise MyError(f'Several files were found with the same name "{remote_folder_name}"!')
+        raise MyError(f'Several files were found with the same name "{folder_name}"!')
 
     return folders[0]
 
 
 def main():
-    gapi = GoogleApi()
+    gapi = GoogleApi(auth_key_path)
 
     try:
-        local_folder_path, remote_folder_name = parse_argv()
         remote_folder_id = get_folder_id(gapi, remote_folder_name)
     except MyError as error:
         logger.error(error)
         exit()
 
-    local_folder_path = Path(local_folder_path)
-    logger.info(f'Set local folder as "{local_folder_path}" and remote folder as "{remote_folder_name}"')
-
+    logger.info(f'Remote folder with name "{remote_folder_name}" found')
     scanner = LocalFolderScanner(local_folder_path, on_find(local_folder_path, remote_folder_id, gapi))
+    logger.info(f'Start scanning')
     scanner.scanning()
 
 

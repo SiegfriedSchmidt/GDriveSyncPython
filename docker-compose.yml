@@ -1,13 +1,15 @@
-version: "3"
-
 services:
-  app:
-    image: gdrivesync
+  gdrivesync:
+    #platform: linux/amd64
+    build: .
+    image: siegfriedschmidt/gdrivesync
     container_name: gdrivesync
     environment:
-      REMOTE_FOLDER_NAME: defaultfoldername
+      - LOCAL_FOLDER_PATH=/app/folder_sync
+      - AUTH_KEY_PATH=/app/auth/key.json
+      - REMOTE_FOLDER_NAME=from_server
     volumes:
-      - /local/path/folder:/app/folder_sync:ro
-      - /local/path/auth:/app/auth:ro
+      - ./folder_sync:/app/folder_sync:ro
+      - ./auth:/app/auth:ro
 
     restart: "no"
