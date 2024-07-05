@@ -1,46 +1,36 @@
 # How to start
-
-
-Before start, we need to authorize credentials for a desktop application in your google account:
+Before start, we need to get key.json for a service account in google api:
 
 *https://developers.google.com/drive/api/quickstart/python*
 
-```bash
-$ git https://github.com/SiegfriedSchmidt/GDriveSyncPython.git
-$ cd GDriveSyncPython
-$ mkdir auth
-# save credentials.json here (auth/credentials.json)
-```
-
-### Python venv
-```bash
-$ python3 -m venv venv
-$ source venv/bin/activate
-$ python3 main.py local_folder_path remote_folder_name
-```
-
-
 ### Docker compose
-REMOTE_FOLDER_NAME - name of google drive folder
+#### Environment
+LOCAL_FOLDER_PATH  --- path to folder to sync
+AUTH_KEY_PATH      --- path to key.json
+REMOTE_FOLDER_NAME --- google drive folder name
 
-Also change volume path to local folder
+#### Volumes
+./folder_sync:/app/folder_sync:ro --- path to folder to sync
+./auth:/app/auth:ro               --- path to auth folder with key.json file
 
 ```yaml
-version: "3"
-
 services:
-  app:
-    image: gdrivesync
+  gdrivesync:
+    #platform: linux/amd64
+    build: .
+    image: siegfriedschmidt/gdrivesync
     container_name: gdrivesync
     environment:
-      REMOTE_FOLDER_NAME: defaultfoldername
+      - LOCAL_FOLDER_PATH=/app/folder_sync
+      - AUTH_KEY_PATH=/app/auth/key.json
+      - REMOTE_FOLDER_NAME=from_server
     volumes:
-      - /local/path/folder:/app/folder_sync:ro
+      - ./folder_sync:/app/folder_sync:ro
+      - ./auth:/app/auth:ro
 
-    restart: unless-stopped
+    restart: "unless-stopped"
 ```
 
 ```bash
-$ docker build . -t gdrivesync
 $ docker compose up -d
 ```
