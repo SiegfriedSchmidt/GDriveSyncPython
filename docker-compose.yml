@@ -1,13 +1,15 @@
 services:
   gdrivesync:
-    #platform: linux/amd64
+    platform: linux/amd64
     build: .
     image: siegfriedschmidt/gdrivesync
     container_name: gdrivesync
     environment:
+      - DRIVE_TYPE=GOOGLE
       - LOCAL_FOLDER_PATH=/app/folder_sync
       - AUTH_KEY_PATH=/app/auth/key.json
       - REMOTE_FOLDER_NAME=from_server
+      - CLEAR_DOWNLOADS=1
     volumes:
       - ./folder_sync:/app/folder_sync:ro
       - ./auth:/app/auth:ro
