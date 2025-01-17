@@ -188,7 +188,7 @@ def main():
 
     logger.info(f'Remote folder with name "{remote_folder_name}" found')
     scanner = LocalFolderScanner(local_folder_path, on_find(local_folder_path, remote_folder, drive_api))
-    logger.info(f'Start scanning')
+    logger.info(f'Start scanning {local_folder_path}.')
     scanner.scanning()
 
 
