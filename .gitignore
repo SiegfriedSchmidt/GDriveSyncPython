@@ -6,3 +6,4 @@ folder_sync
 venv
 .venv
 deploy.*
+ __pycache__

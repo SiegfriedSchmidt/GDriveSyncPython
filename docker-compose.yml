@@ -1,17 +1,17 @@
 services:
-  gdrivesync:
+  drive-sync:
     platform: linux/amd64
     build: .
-    image: siegfriedschmidt/gdrivesync
-    container_name: gdrivesync
+    image: siegfriedschmidt/drive-sync
+    container_name: drive-sync
     environment:
-      - DRIVE_TYPE=GOOGLE
-      - LOCAL_FOLDER_PATH=/app/folder_sync
-      - AUTH_KEY_PATH=/app/auth/key.json
-      - REMOTE_FOLDER_NAME=from_server
+      - DRIVE_TYPE=SYNOLOGY
+      - LOCAL_FOLDER=/app/folder_sync
+      - REMOTE_FOLDER=/home/Test
+      - AUTH_KEY_PATH=/app/auth/synology.json
       - CLEAR_DOWNLOADS=1
     volumes:
-      - ./folder_sync:/app/folder_sync:ro
+      - ./folder_sync:/app/folder_sync
       - ./auth:/app/auth:ro
 
     restart: "unless-stopped"
