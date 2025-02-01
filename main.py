@@ -56,6 +56,7 @@ class SynologyDrive(Drive):
             data = fs.get_file_list(root_folder, filetype='dir' if only_dirs else None)['data']
             if data['total'] != 0:
                 for folder in data['files']:
+                    folder = folder  # type: dict # such a useless line, but pycharm don't give warnings with it
                     if folder['isdir']:
                         self.__recursive_dirs(folder['path'], files, fs, only_dirs)
                     else:
@@ -71,6 +72,7 @@ class SynologyDrive(Drive):
             return
 
         for folder in data['files']:
+            folder = folder  # type: dict # such a useless line, but pycharm don't give warnings with it
             if folder['isdir']:
                 self.__recursive_dirs(folder['path'], files, fs, only_dirs)
             else:
